@@ -1,0 +1,128 @@
+buildscript {
+    repositories {
+        jcenter()
+        maven { url = "http://files.minecraftforge.net/maven" }
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.2-SNAPSHOT'
+    }
+}
+apply plugin: 'net.minecraftforge.gradle.forge'
+//Only edit below this line, the above code adds and enables the nessasary things for Forge to be setup.
+
+ext.buildnumber = 0
+if (System.getenv('BUILD_NUMBER') != null)
+    project.buildnumber = System.getenv('BUILD_NUMBER')
+else {
+    try {
+        ext.buildnumber += "_" + "git rev-parse --abbrev-ref HEAD".execute().text.trim();
+        ext.buildnumber += "_" + "git rev-parse --short HEAD".execute().text.trim();
+    } catch (all) {}
+    logger.lifecycle "No build number detected, setting to ${ext.buildnumber}"
+}
+
+version = "${minecraft_version}-${mod_version}.${buildnumber}"
+
+group= "wolf.HTWTweaks" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+archivesBaseName = "HTWTweaks"
+
+if (project.hasProperty('mod_appendix')) {
+    version += "_${project.mod_appendix}"
+       type = project.mod_appendix
+}
+
+
+sourceCompatibility = targetCompatibility = "1.6" // Need this here so eclipse task generates correctly.
+compileJava {
+    sourceCompatibility = targetCompatibility = "1.6"
+}
+
+minecraft {
+    version = "${minecraft_version}-${forge_version}"
+    runDir = "run"
+    
+    // the mappings can be changed at any time, and must be in the following format.
+    // snapshot_YYYYMMDD   snapshot are built nightly.
+    // stable_#            stables are built at the discretion of the MCP team.
+    // Use non-default mappings at your own risk. they may not allways work.
+    // simply re-run your setup task after changing the mappings to update your workspace.
+    mappings = "snapshot_20161111"
+    // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
+}
+
+configurations {
+	compile.extendsFrom exportedCompile
+}
+
+repositories {
+    mavenCentral()
+    maven { url = "http://maven.tterrag.com" }
+    maven { url = "http://files.minecraftforge.net/maven" }
+    mavenLocal()
+}
+
+dependencies {
+    deobfCompile "com.enderop.core:EnderCore:${endercore_version}"
+	deobfCompile "com.enderio.EnderIO:${enderio_version}"
+    deobfCompile "mcp.mobius.waila:Waila:${waila_version}"
+    deobfCompile "mezz.jei:jei_${minecraft_version}:${jei_version}"
+    deobfCompile "mcjty.theoneprobe:TheOneProbe:${top_version}"
+
+}
+
+sourceSets {
+  main {
+	java {
+		srcDir 'src/main/java'
+	}
+	resources {
+		srcDir 'src/resources'
+	}
+  }
+}
+
+processResources
+{
+    inputs.property "version", project.version
+    inputs.property "mcversion", project.minecraft.version
+
+    from(sourceSets.main.resources.srcDirs) {
+        include '**/*.info'
+        include '**/*.properties'
+		
+        expand 'version':project.version, 'mcversion':project.minecraft.version
+    }
+        
+    from(sourceSets.main.resources.srcDirs) {
+        exclude '**/*.info'
+        exclude '**/*.properties'
+    }
+}
+
+compileJava.doFirst {
+    String modFile = 'build/sources/main/java/wolf/HTWTweaks/HTWTweaks.java'
+    File modFileFile = new File(projectDir, modFile) 
+    String contents = modFileFile.getText('UTF-8')
+    contents = contents.replaceAll('dependencies = ".*", guiFactory', 'dependencies = "' + project.ext.dependencies + '", guiFactory')
+    modFileFile.write(contents, 'UTF-8')
+}
+
+jar {
+    from { configurations.exportedCompile.collect { it.isDirectory() ? it : zipTree(it) } }
+}
+
+task deobfJar(type: Jar) {
+    from sourceSets.main.output
+    from { configurations.exportedCompile.collect { it.isDirectory() ? it : zipTree(it) } }
+    classifier = 'dev'
+}
+
+if (JavaVersion.current().isJava8Compatible()) {
+    allprojects {
+        tasks.withType(Javadoc) {
+            options.addStringOption('Xdoclint:none', '-quiet')
+        }
+    }
+}
+
+build.dependsOn sourceJar
