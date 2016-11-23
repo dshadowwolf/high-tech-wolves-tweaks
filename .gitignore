@@ -1,0 +1,5 @@
+.gradle
+bin
+run
+wolfmod_Client.launch
+wolfmod_Server.launch
