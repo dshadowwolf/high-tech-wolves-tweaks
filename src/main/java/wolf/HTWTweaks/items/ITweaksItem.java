@@ -15,6 +15,7 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumHand;
 import net.minecraft.world.World;
+import wolf.HTWTweaks.refs.DataTypes;
 
 /**
  * @author madman
@@ -22,6 +23,8 @@ import net.minecraft.world.World;
  */
 public abstract class ITweaksItem extends Item implements IBauble {
 
+	private DataTypes type = DataTypes.NO_DATA;
+	
 	public ITweaksItem() {
 	}
 
@@ -30,6 +33,18 @@ public abstract class ITweaksItem extends Item implements IBauble {
 		this.setRegistryName(name);
 
 		this.setMaxStackSize(1);
+	}
+	
+	public int getSize() {
+		return 0;
+	}
+	
+	public DataTypes getDataType() {
+		return type;
+	}
+	
+	public void setDataType(DataTypes newType) {
+		this.type = newType;
 	}
 	
 	@Override
