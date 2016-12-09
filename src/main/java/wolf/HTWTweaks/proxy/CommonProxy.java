@@ -10,6 +10,7 @@ import wolf.HTWTweaks.recipes.RecipeManager;
 import wolf.HTWTweaks.HTWTweaks;
 import wolf.HTWTweaks.config.ConfigManager;
 import wolf.HTWTweaks.blocks.blockManager;
+import wolf.HTWTweaks.items.itemManager;
 
 public class CommonProxy {
    public static Configuration config;
@@ -17,6 +18,7 @@ public class CommonProxy {
    public void preInit(FMLPreInitializationEvent event) {
 	   config = ConfigManager.init(event);
 	   blockManager.init(event);
+	   itemManager.init(event);
 	   RecipeManager.init(event);
    }
    
